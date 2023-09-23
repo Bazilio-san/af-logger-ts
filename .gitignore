@@ -14,17 +14,16 @@ yarn-error.log*
 .idea
 
 # DEV directories
-_misc/
 /_tmp/
+/_log/
+_misc/
 tmp/
 
-/sync-bf.cmd
-/sync-bf.sh
 /t?.js
 t.*
 local*.*
 *.local.*
 /package-lock.json
-/.env
+/**/.env*
 **/dist
-/_log/
+
