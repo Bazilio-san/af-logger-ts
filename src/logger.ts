@@ -47,7 +47,7 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
     const arr = Object.entries(fileLoggerMap || {}).filter(([, t]) => t === fileLoggerType).map(([l]) => l);
     if (arr.length) {
       logLevels.forEach((levelName) => {
-        transportLogger[levelName] = arr.includes(levelName) ? fileLogger[fileLoggerType].main : () => undefined;
+        transportLogger[levelName] = arr.includes(levelName) ? fileLogger[fileLoggerType as 'info' | 'error'].main : () => undefined;
       });
       // logger.attachTransport(transportLogger, fileLoggerType === 'error' ? fileLoggerType : minLevel); // VVQ
       logger.attachTransport(transportLogger);

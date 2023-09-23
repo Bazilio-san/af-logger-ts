@@ -3,7 +3,7 @@ import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { ILogObj, ISettingsParam } from 'tslog';
 
-export type TMethod<T> = (...args: any[]) => T;
+export type TMethod<T> = (..._args: any[]) => T;
 export type TErr = Error | any;
 export type Maybe<T> = T | undefined;
 export type Nullable<T> = T | null;
@@ -40,12 +40,12 @@ export interface ILoggerSettings extends ISettingsParam<ILogObj> {
   minErrorLogSize?: number, // Files smaller than this size will be deleted during rotation. Default = minLogSize | 0
   emitter?: EventEmitter,
   fileLoggerMap?: {
-    [key in TLogLevelName]?: 'info' | 'error'
+    [_key in TLogLevelName]?: 'info' | 'error'
   }
 }
 
 export interface IFileLogger extends winston.Logger {
-  main: (logObject: ILogObj) => ILogObj,
+  main: (_logObject: ILogObj) => ILogObj,
   minLogSize: number,
   dir: string,
   removeEmptyLogs: TMethod<void>,
