@@ -1,0 +1,6 @@
+---
+logger:
+  level: silly
+  prefix: 'TEST-LOG'
+  colorizePrettyLogs: true
+
