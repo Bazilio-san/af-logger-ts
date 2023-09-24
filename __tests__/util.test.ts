@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
-import { getFiles } from '../src/utils';
+
+import { getFiles } from '../src/fs/fs-utils';
 
 const TIMEOUT_MILLIS = 100_000;
 

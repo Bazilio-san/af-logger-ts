@@ -15,7 +15,7 @@ yarn-error.log*
 
 # DEV directories
 /_tmp/
-/_log/
+/_test_tmp/
 _misc/
 tmp/
 

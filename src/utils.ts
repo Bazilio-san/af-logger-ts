@@ -1,74 +1,5 @@
 /* eslint-disable no-console */
-import * as fse from 'fs-extra';
-import * as fs from 'fs';
-import * as fsPath from 'path';
 import { TErr } from './interfaces';
-
-export interface IFileInfo {
-  name: string,
-  path: string,
-  size: number,
-  created: number
-}
-
-export const normalizePath = (path: string) => fsPath.normalize(fsPath.resolve(path)).replace(/\\/g, '/');
-
-export const getFiles = (dir: string): IFileInfo[] => {
-  dir = fse.realpathSync(dir);
-  if (!fs.existsSync(dir) || !fse.statSync(dir).isDirectory()) {
-    return [];
-  }
-  const files: IFileInfo[] = [];
-  fse.readdirSync(dir).forEach((name) => {
-    const path = normalizePath(`${dir}/${name}`);
-    const syncObj = fs.statSync(path);
-    if (!syncObj.isDirectory()) {
-      files.push({ name, path, size: syncObj.size, created: syncObj.ctimeMs });
-    }
-  });
-  return files;
-};
-
-export const date2YMD = (d?: Date): string => (d || new Date()).toISOString().replace(/-/g, '').substring(0, 8);
-
-/**
- * Removes from the specified folder files that are smaller than minSize and
- * with a creation date older than the current one.
- */
-export const removeEmptyLogs = (dir: string, fileRe: RegExp, minSize = 0): void => {
-  if (!dir || !fileRe) {
-    return;
-  }
-  const filesToDelete = getFiles(dir).filter(({ name, size, created }: IFileInfo) => {
-    if (size < minSize) {
-      return false;
-    }
-    if (Date.now() - created < 60_000) {
-      return false;
-    }
-    const match = fileRe.exec(name);
-    if (!match) {
-      return false;
-    }
-    return match[1].replace(/-/g, '') < date2YMD();
-  });
-  filesToDelete.forEach(({ path }: IFileInfo) => {
-    try {
-      fs.unlinkSync(path);
-    } catch (err: TErr) {
-      console.log(err.message);
-    }
-    console.log(`Removed empty log file "${path}"`);
-  });
-};
-
-// VVR
-export const isObject = (v: any): boolean => v != null
-  && typeof v === 'object'
-  && !Array.isArray(v)
-  && !(v instanceof Date)
-  && !(v instanceof Set)
-  && !(v instanceof Map);
 
 const reducePropertyValue = (v: any) => {
   const type = typeof v;
@@ -137,4 +68,44 @@ export const reduceAnyError = (err: TErr) => {
     }
     return err;
   }
+};
+
+const PRETTY_LOG_STYLES_DEFAULT = {
+  logLevelName: {
+    '*': ['bold', 'black', 'bgWhiteBright', 'dim'],
+    SILLY: ['bold', 'white'],
+    TRACE: ['bold', 'whiteBright'],
+    DEBUG: ['bold', 'green'],
+    INFO: ['bold', 'blue'],
+    WARN: ['bold', 'yellow'],
+    ERROR: ['bold', 'red'],
+    FATAL: ['bold', 'redBright'],
+  },
+  dateIsoStr: 'white',
+  filePathWithLine: 'white',
+  name: ['white', 'bold'],
+  nameWithDelimiterPrefix: ['white', 'bold'],
+  nameWithDelimiterSuffix: ['white', 'bold'],
+  errorName: ['bold', 'bgRedBright', 'whiteBright'],
+  fileName: ['yellow'],
+  fileNameWithLine: 'white',
+};
+
+const mergeIfExists = (target: any, source: any, exclude: string[] = []): any => {
+  if (!source) {
+    return;
+  }
+  Object.keys(target).filter((k) => !exclude.includes(k)).forEach((k) => {
+    const v = source[k];
+    if (v) {
+      target[k] = v;
+    }
+  });
+};
+
+export const mergeStyles = (customStalesPartial: any): any => {
+  const result: any = { ...PRETTY_LOG_STYLES_DEFAULT, logLevelName: { ...PRETTY_LOG_STYLES_DEFAULT.logLevelName } };
+  mergeIfExists(result, customStalesPartial, ['logLevelName']);
+  mergeIfExists(result.logLevelName, customStalesPartial?.logLevelName);
+  return result;
 };

@@ -1,25 +1,28 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* istanbul ignore file */
 // noinspection JSUnusedGlobalSymbols
 
 import { AsyncLocalStorage } from 'async_hooks';
 import { ILogObj, ISettingsParam, Logger } from 'tslog';
-import { FileLogger } from './file-logger';
-import { ILoggerSettings, logLevels, TErr } from './interfaces';
-import { reduceAnyError } from './utils';
+import { FileLogger } from './fs/file-logger';
+import { IFileLoggerConstructorOptions, ILoggerSettings, TErr } from './interfaces';
+import { mergeStyles, reduceAnyError } from './utils';
 
 const asyncLocalStorage: AsyncLocalStorage<{ requestId: string }> = new AsyncLocalStorage();
+const defaultLogObject: ILogObj = { requestId: () => asyncLocalStorage.getStore()?.requestId };
 
 export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const settings = {
-    name: loggerSettings.name || 'log',
-    displayLoggerName: false,
-    displayFunctionName: false,
-    displayFilePath: 'hidden',
-    requestId: () => asyncLocalStorage.getStore()?.requestId,
     ...loggerSettings,
+    name: loggerSettings.name || 'log',
+    prettyLogTemplate: loggerSettings.prettyLogTemplate || '{{hh}}:{{MM}}:{{ss}}:{{ms}}\t{{logLevelName}}\t',
+    prettyErrorTemplate: loggerSettings.prettyErrorTemplate || '{{errorName}} {{errorMessage}}\n{{errorStack}}',
+    prettyErrorStackTemplate: loggerSettings.prettyErrorStackTemplate || '    at {{method}} ({{filePathWithLine}})',
+    stylePrettyLogs: true,
+    prettyLogTimeZone: 'UTC',
+    prettyLogStyles: mergeStyles(loggerSettings.prettyLogStyles),
   } as ISettingsParam<ILogObj>;
-  const logger = new Logger(settings);
+
+  const logger = new Logger(settings, defaultLogObject);
 
   const fnError = logger.error;
 
@@ -31,28 +34,21 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   };
 
   // ============================ file logger ====================================
-  const { filePrefix, logDir, minLogSize, minErrorLogSize, fileLoggerMap } = loggerSettings;
+  const { filePrefix, logDir, minLogSize, minErrorLogSize } = loggerSettings;
 
-  const fileLoggerOptions: ILoggerSettings = {
+  const fileLoggerConstructorOptions: IFileLoggerConstructorOptions = {
     filePrefix: filePrefix || settings.name,
     logDir,
     minLogSize,
     minErrorLogSize,
     emitter: loggerSettings.emitter,
+    fileLoggerMap: loggerSettings.fileLoggerMap,
   };
-  const fileLogger = new FileLogger(fileLoggerOptions);
 
-  ['info', 'error'].forEach((fileLoggerType) => {
-    const transportLogger: any = {};
-    const arr = Object.entries(fileLoggerMap || {}).filter(([, t]) => t === fileLoggerType).map(([l]) => l);
-    if (arr.length) {
-      logLevels.forEach((levelName) => {
-        transportLogger[levelName] = arr.includes(levelName) ? fileLogger[fileLoggerType as 'info' | 'error'].main : () => undefined;
-      });
-      // logger.attachTransport(transportLogger, fileLoggerType === 'error' ? fileLoggerType : minLevel); // VVQ
-      logger.attachTransport(transportLogger);
-    }
-  });
+  const fileLogger = new FileLogger(fileLoggerConstructorOptions);
+
+  logger.attachTransport(fileLogger.infoFileLogger.main);
+  logger.attachTransport(fileLogger.errorFileLogger.main);
 
   return {
     logger,
@@ -63,7 +59,6 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
       }
       // eslint-disable-next-line no-console
       console.log(err);
-      // logger.prettyError(err, true, !err[Symbol.for('noExposeCodeFrame')]); VVQ
       process.exit(1);
     },
   };

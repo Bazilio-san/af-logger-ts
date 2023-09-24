@@ -1,15 +1,20 @@
 export { getAFLogger } from './logger';
 
 export {
+  IFileLogger,
+  ILoggerSettings,
   ILogLevel,
+  TEchoOptions,
+  TErr,
+  TFileLoggerMap,
+  TFileLogLevel,
   TLogLevelId,
   TLogLevelName,
-  IFileLogger,
-  ImErrOptions,
-  TEchoOptions,
   TMethod,
-  ILoggerSettings,
-  TErr,
+
   Maybe,
   Nullable,
+
+  logLevelIdByName,
+  logLevels,
 } from './interfaces';
