@@ -27,9 +27,7 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const fnError = logger.error;
 
   logger.error = (...args) => {
-    if (args[0]) {
-      args[0] = reduceAnyError(args[0]);
-    }
+    args = args.map((v) => reduceAnyError(v));
     return fnError.apply(logger, args);
   };
 

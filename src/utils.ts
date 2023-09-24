@@ -34,25 +34,25 @@ const reducePropertyValue = (v: any) => {
   return undefined;
 };
 
-const reduceError = (err: TErr) => {
+const reduceError = (err: TErr, asObject: boolean = false) => {
   const namesSet = new Set(Object.getOwnPropertyNames(err));
   // eslint-disable-next-line guard-for-in,no-restricted-syntax
   for (const k in err) {
     namesSet.add(k);
   }
   // eslint-disable-next-line no-new-object
-  const o: { [key: string]: any } = new Object(null);
+  const o = (asObject ? new Object(null) : new Error()) as { [key: string]: any };
   // eslint-disable-next-line guard-for-in,no-restricted-syntax
   for (const k of namesSet) {
     const v = ['stack', 'message', 'code', 'name'].includes(k) ? err[k] : reducePropertyValue(err[k]);
     if (v != null && v !== '') {
-      o[k] = v;
+      o[k as string] = v;
     }
   }
   return o;
 };
 
-export const reduceAnyError = (err: TErr) => {
+export const reduceAnyError = (err: TErr, asObject: boolean = false) => {
   if (typeof err === 'string') {
     return err;
   }
@@ -61,10 +61,10 @@ export const reduceAnyError = (err: TErr) => {
       return JSON.stringify(err, undefined, 2).substring(0, 300);
     }
     if (err.nativeError) {
-      return reduceError(err.nativeError);
+      return reduceError(err.nativeError, asObject);
     }
     if (err instanceof Error || (err.stack && err.message)) {
-      return reduceError(err);
+      return reduceError(err, asObject);
     }
     return err;
   }

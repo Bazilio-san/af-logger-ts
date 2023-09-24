@@ -88,13 +88,33 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
     if (!fileLoggerActiveLevelsIds.includes(logLevelId)) {
       return;
     }
-    let message: string = '';
-    if (Array.isArray(logObjWithMeta?.argumentsArray)) {
-      message = logObjWithMeta.argumentsArray
-        .filter((v: any) => v != null && v !== '')
-        .map((v: any) => (typeof v === 'string' ? v : JSON.stringify(reduceAnyError(v), undefined, 2)).replace(/\x1b\[[\d;]+m/ig, ''))
-        .join(' ');
+    const messages: string[] = [];
+    if (logObjWithMeta['0']) {
+      const keys = Object.keys(logObjWithMeta).filter((k) => /\d/.test(String(k)));
+      if (keys.length) {
+        keys.forEach((k) => {
+          const v: any = logObjWithMeta[k];
+          if (v != null && v !== '') {
+            if (typeof v === 'string') {
+              messages.push(v);
+            } else {
+              messages.push(JSON.stringify(reduceAnyError(v, true), undefined, 2));
+            }
+          }
+        });
+      }
+    } else if (logObjWithMeta.nativeError) {
+      messages.push(JSON.stringify(reduceAnyError(logObjWithMeta.nativeError, true), undefined, 2));
+    } else if (['stack', 'message', 'code', 'name'].some((v) => logObjWithMeta[v])) {
+      messages.push(JSON.stringify(reduceAnyError(logObjWithMeta, true), undefined, 2));
+    } else {
+      messages.push(JSON.stringify(logObjWithMeta, undefined, 2));
     }
+
+    const message = messages
+      .map((v) => v.replace(/\x1b\[[\d;]+m/ig, '').trim())
+      .filter(Boolean)
+      .join(' ').trim();
     if (message) {
       winstonLogger[fileLogLevel](message);
     }
@@ -109,10 +129,8 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
 const fooLogger = { main: () => undefined } as unknown as IFileLogger;
 
 export class FileLogger {
-  // @ts-ignore
   infoFileLogger: IFileLogger;
 
-  // @ts-ignore
   errorFileLogger: IFileLogger;
 
   loggerFinish: (_exitCode?: number) => void;

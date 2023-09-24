@@ -26,11 +26,12 @@ const loggerSettings: ILoggerSettings = {
 
 const { logger } = getAFLogger(loggerSettings);
 
-logger.silly('write silly');
+logger.silly('write silly1', 'write silly2', 'write silly3');
 logger.trace('write trace');
 logger.debug('write debug');
 logger.info('write info');
-logger.warn('write warn');
+logger.warn('write warn1');
 logger.error(new Error('write error'));
-logger.fatal(new Error('write error'));
-console.log(new Error('write error'));
+logger.error('eee', new Error('write error'));
+logger.fatal('fatalfatalfatal', new Error('write fatal'));
+logger.fatal(new Error('write fatal'));
