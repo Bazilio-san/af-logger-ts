@@ -25,6 +25,7 @@
     "outDir": "dist/cjs"
   },
   "include": [
+    "*.d.ts",
     "src/**/*.ts",
     "__tests__/**/*.ts"
   ],

@@ -1,6 +1,6 @@
 {
   "name": "af-logger-ts",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A highly specialized function library",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/index.js",
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "app-root-path": "^3.1.0",
+    "cli-color": "^2.0.4",
     "fs-extra": "^11.1.1",
     "tslog": "^4.9.2",
     "winston": "^3.10.0",

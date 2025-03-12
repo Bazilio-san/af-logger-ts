@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { ILogObj, ILogObjMeta, ISettingsParam } from 'tslog';
+import { AsyncLocalStorage } from 'async_hooks';
 
 export type TMethod<T> = (..._args: any[]) => T;
 export type TErr = Error | any;
@@ -44,6 +45,7 @@ export type TFileLoggerMap = {
 }
 
 export interface IFileLoggerConstructorOptions {
+  asyncLocalStorage?: AsyncLocalStorage<{ traceId: string }>,
   filePrefix?: string,
   logDir?: string,
   minLogSize?: number, // Files smaller than this size will be deleted during rotation. Default = 0

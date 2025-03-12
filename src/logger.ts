@@ -1,19 +1,20 @@
 /* istanbul ignore file */
 // noinspection JSUnusedGlobalSymbols
 
-import { AsyncLocalStorage } from 'async_hooks';
 import { ILogObj, ISettingsParam, Logger } from 'tslog';
 import { FileLogger } from './fs/file-logger';
 import { IFileLoggerConstructorOptions, ILoggerSettings, TErr } from './interfaces';
 import { mergeStyles, reduceAnyError } from './utils';
+import { getColorFn } from './trace-utils';
 
-const asyncLocalStorage: AsyncLocalStorage<{ requestId: string }> = new AsyncLocalStorage();
-const defaultLogObject: ILogObj = { requestId: () => asyncLocalStorage.getStore()?.requestId };
+const defaultLogObject: ILogObj = { };
 
 export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const settings = {
     ...loggerSettings,
     name: loggerSettings.name || 'log',
+    type: 'pretty',
+    colorizePrettyLogs: true,
     prettyLogTemplate: loggerSettings.prettyLogTemplate || '{{hh}}:{{MM}}:{{ss}}:{{ms}}\t{{logLevelName}}\t',
     prettyErrorTemplate: loggerSettings.prettyErrorTemplate || '{{errorName}} {{errorMessage}}\n{{errorStack}}',
     prettyErrorStackTemplate: loggerSettings.prettyErrorStackTemplate || '    at {{method}} ({{filePathWithLine}})',
@@ -24,8 +25,24 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
 
   const logger = new Logger(settings, defaultLogObject);
 
-  const fnError = logger.error;
+  // Добавление traceId из asyncLocalStorage в лог
+  const logFuncArr = ['error', 'warn', 'silly', 'debug', 'info', 'trace'];
+  logFuncArr.forEach((item) => {
+    const loggerObj = logger as unknown as { [key: string]: Function };
+    const fn = loggerObj[item];
+    loggerObj[item] = ((...args: string[]) => {
+      const store = loggerSettings.asyncLocalStorage?.getStore();
+      const traceId = store?.traceId;
+      if (traceId) {
+        const colorFn = getColorFn(traceId);
+        const traceString = colorFn ? colorFn(`[${traceId}]`) : `[${traceId}]`;
+        args = args.map((v) => `${traceString} - ${v}`);
+      }
+      return fn.apply(logger, args);
+    }) as Function;
+  });
 
+  const fnError = logger.error;
   logger.error = (...args) => {
     args = args.map((v) => reduceAnyError(v));
     return fnError.apply(logger, args);
