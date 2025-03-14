@@ -9,35 +9,16 @@ import 'winston-daily-rotate-file';
 import * as winston from 'winston';
 import { ILogObj, ILogObjMeta } from 'tslog';
 import { reduceAnyError } from '../utils';
-import { IFileLogger, IFileLoggerConstructorOptions, logLevels, TFileLoggerMap, TFileLogLevel, TLogLevelName } from '../interfaces';
+import { IFileLogger, IFileLoggerConstructorOptions, TFileLogLevel } from '../interfaces';
 import { normalizePath, removeEmptyLogs } from './fs-utils';
 
 const DEFAULT_LOG_DIR = fsPath.resolve(appRoot.path, '../logs');
-
-const getFileLoggerActiveLevels = (fileLoggerMap: TFileLoggerMap | undefined, fileLogLevel: TFileLogLevel) => {
-  // For a given type of file logger, we get a list of active logging levels
-  let fileLoggerActiveLevels: TLogLevelName[] = [];
-  if (fileLoggerMap) {
-    // For a given type of file logger, we get a list of active logging levels
-    fileLoggerActiveLevels = Object.entries(fileLoggerMap as TFileLoggerMap)
-      .filter(([, fileLevel]) => fileLevel === fileLogLevel)
-      .map(([logLevelName]) => logLevelName as TLogLevelName)
-      .filter((logLevelName) => logLevels.includes(logLevelName));
-  }
-
-  if (!fileLoggerActiveLevels.length) {
-    console.log(`WARNING: When creating a FileLogger instance, the fileLoggerMap parameter does not contain maps for "${fileLogLevel}" logger. "${fileLogLevel}" file logger won't work.`);
-  }
-  return fileLoggerActiveLevels;
-};
-
 /**
  * Returns a file logger of the specified type (info|error)
  * The logger is created in accordance with the specified settings and has a number of additional properties
  */
 const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFileLogLevel): IFileLogger => {
   const { filePrefix, logDir } = options;
-  const fileLoggerActiveLevels: TLogLevelName[] = getFileLoggerActiveLevels(options.fileLoggerMap, fileLogLevel);
   const isError = fileLogLevel === 'error';
 
   const minLogSize = (isError ? options.minErrorLogSize : 0) || options.minLogSize || 0;
@@ -68,8 +49,8 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
   const winstonLogger = winston.createLogger({
     transports: [transport],
     format: winston.format.combine(
-      winston.format.timestamp({ format: 'HH:mm:ss' }),
-      winston.format.printf((info) => `${info.timestamp}: ${info.message}`),
+      winston.format.timestamp({ format: 'YYYY-MM-DD-HH:mm:ss.sss' }),
+      winston.format.printf((info) => `${info.timestamp}  ${info.level.toUpperCase()}  ${info.message}`),
     ),
   }) as unknown as IFileLogger;
   const p = winstonLogger._readableState.pipes;
@@ -80,14 +61,8 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
   winstonLogger._where = `${p.dirname}/${p.filename}`;
 
   winstonLogger.removeEmptyLogs();
-
-  const fileLoggerActiveLevelsIds = fileLoggerActiveLevels.map((l) => logLevels.indexOf(l));
-
   function main (logObjWithMeta: ILogObj & ILogObjMeta) {
-    const { logLevelId } = logObjWithMeta._meta;
-    if (!fileLoggerActiveLevelsIds.includes(logLevelId)) {
-      return;
-    }
+    const { logLevelName } = logObjWithMeta._meta;
     const messages: string[] = [];
     if (logObjWithMeta['0']) {
       const keys = Object.keys(logObjWithMeta).filter((k) => /\d/.test(String(k)));
@@ -116,7 +91,7 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
       .filter(Boolean)
       .join(' ').trim();
     if (message) {
-      winstonLogger[fileLogLevel](message);
+      winstonLogger[logLevelName.toLowerCase() as unknown as TFileLogLevel](message);
     }
     return logObjWithMeta;
   }
@@ -125,8 +100,6 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
 
   return winstonLogger;
 };
-
-const fooLogger = { main: () => undefined } as unknown as IFileLogger;
 
 export class FileLogger {
   infoFileLogger: IFileLogger;
@@ -141,18 +114,7 @@ export class FileLogger {
     options.logDir = normalizePath(options.logDir || DEFAULT_LOG_DIR);
     this.logDir = options.logDir;
 
-    const { fileLoggerMap } = options;
-    if (!fileLoggerMap || !Object.keys(fileLoggerMap).length) {
-      console.log(`WARNING: When creating a FileLogger instance, the fileLoggerMap parameter was not passed or empty. File logger won't work.`);
-      this.infoFileLogger = fooLogger;
-      this.errorFileLogger = fooLogger;
-      this.loggerFinish = (exitCode) => {
-        process.exit(exitCode);
-      };
-      return;
-    }
-
-    this.infoFileLogger = getFSLogger(options, 'info');
+    this.infoFileLogger = getFSLogger(options, options?.level ?? 'info');
     this.errorFileLogger = getFSLogger(options, 'error');
 
     this.loggerFinish = (exitCode = 0) => {

@@ -3,7 +3,11 @@
 
 import { ILogObj, ISettingsParam, Logger } from 'tslog';
 import { FileLogger } from './fs/file-logger';
-import { IFileLoggerConstructorOptions, ILoggerSettings, TErr } from './interfaces';
+import { IFileLoggerConstructorOptions,
+  ILoggerSettings,
+  tsLogLevelIdByName,
+  TErr,
+  getWinstonLogLevel } from './interfaces';
 import { mergeStyles, reduceAnyError } from './utils';
 import { getColorFn } from './trace-utils';
 
@@ -12,10 +16,11 @@ const defaultLogObject: ILogObj = { };
 export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const settings = {
     ...loggerSettings,
+    minLevel: tsLogLevelIdByName(loggerSettings.level),
     name: loggerSettings.name || 'log',
     type: 'pretty',
     colorizePrettyLogs: true,
-    prettyLogTemplate: loggerSettings.prettyLogTemplate || '{{hh}}:{{MM}}:{{ss}}:{{ms}}\t{{logLevelName}}\t',
+    prettyLogTemplate: loggerSettings.prettyLogTemplate || '{{yyyy}}-{{mm}}-{{dd}}-{{hh}}:{{MM}}:{{ss}}.{{ms}}\t{{logLevelName}}\t',
     prettyErrorTemplate: loggerSettings.prettyErrorTemplate || '{{errorName}} {{errorMessage}}\n{{errorStack}}',
     prettyErrorStackTemplate: loggerSettings.prettyErrorStackTemplate || '    at {{method}} ({{filePathWithLine}})',
     stylePrettyLogs: true,
@@ -38,15 +43,11 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
         const traceString = colorFn ? colorFn(`[${traceId}]`) : `[${traceId}]`;
         args = args.map((v) => `${traceString} - ${v}`);
       }
+      const isNotError = item !== 'error';
+      args = args.map((v) => reduceAnyError(v, isNotError, isNotError));
       return fn.apply(logger, args);
     }) as Function;
   });
-
-  const fnError = logger.error;
-  logger.error = (...args) => {
-    args = args.map((v) => reduceAnyError(v));
-    return fnError.apply(logger, args);
-  };
 
   // ============================ file logger ====================================
   const { filePrefix, logDir, minLogSize, minErrorLogSize } = loggerSettings;
@@ -56,8 +57,8 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
     logDir,
     minLogSize,
     minErrorLogSize,
+    level: getWinstonLogLevel(loggerSettings.level),
     emitter: loggerSettings.emitter,
-    fileLoggerMap: loggerSettings.fileLoggerMap,
   };
 
   const fileLogger = new FileLogger(fileLoggerConstructorOptions);

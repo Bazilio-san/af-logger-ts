@@ -6,7 +6,6 @@ export {
   ILogLevel,
   TEchoOptions,
   TErr,
-  TFileLoggerMap,
   TFileLogLevel,
   TLogLevelId,
   TLogLevelName,
@@ -15,6 +14,6 @@ export {
   Maybe,
   Nullable,
 
-  logLevelIdByName,
-  logLevels,
+  tsLogLevelIdByName,
+  tsLogLevels,
 } from './interfaces';

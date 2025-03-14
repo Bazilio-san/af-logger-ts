@@ -2,7 +2,7 @@ import * as config from 'config';
 import * as fse from 'fs-extra';
 import * as fsPath from 'path';
 import em from './ee';
-import { getAFLogger, ILoggerSettings, logLevelIdByName, TLogLevelName } from '../src';
+import { getAFLogger, ILoggerSettings, tsLogLevelIdByName, TLogLevelName } from '../src';
 import { normalizePath } from '../src/fs/fs-utils';
 
 const minLevelName = config.get<TLogLevelName>('logger.level');
@@ -11,7 +11,7 @@ const logDir = './_test_tmp/_log';
 fse.removeSync(logDir);
 
 const loggerSettings: ILoggerSettings = {
-  minLevel: logLevelIdByName(minLevelName),
+  minLevel: tsLogLevelIdByName(minLevelName),
   name: prefix,
   filePrefix: prefix,
   logDir,
@@ -21,12 +21,6 @@ const loggerSettings: ILoggerSettings = {
   // displayFunctionName: true,
   // displayFilePath: 'displayAll',
   emitter: em,
-  fileLoggerMap: {
-    silly: 'info',
-    info: 'info',
-    error: 'error',
-    fatal: 'error',
-  },
 };
 
 const { logger } = getAFLogger(loggerSettings);

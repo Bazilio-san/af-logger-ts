@@ -52,13 +52,26 @@ const reduceError = (err: TErr, asObject: boolean = false) => {
   return o;
 };
 
-export const reduceAnyError = (err: TErr, asObject: boolean = false) => {
+function removeCircularReferences () {
+  const seen = new WeakSet();
+  return (key: string, value: unknown) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+}
+
+export const reduceAnyError = (err: TErr, asObject: boolean = false, stringify: boolean = false) => {
   if (typeof err === 'string') {
     return err;
   }
   if (typeof err === 'object') {
-    if (Array.isArray(err)) {
-      return JSON.stringify(err, undefined, 2).substring(0, 300);
+    if (Array.isArray(err) || stringify) {
+      return JSON.stringify(err, removeCircularReferences(), 2).substring(0, 300);
     }
     if (err.nativeError) {
       return reduceError(err.nativeError, asObject);

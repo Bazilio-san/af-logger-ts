@@ -32,30 +32,24 @@ export const getFiles = (dir: string): IFileInfo[] => {
 };
 
 /**
- * Returns a string in YYYYMMDD format for the passed JS date
- */
-export const date2YMD = (d?: Date): string => (d || new Date()).toISOString().replace(/-/g, '').substring(0, 8);
-
-/**
- * Removes from the specified folder files that are smaller than minSize and
+ * Removes from the specified folder files that are smaller than minSize or
  * with a creation date older than the current one.
  */
-export const removeEmptyLogs = (dir: string, fileRe: RegExp, minSize = 0): void => {
+export const removeEmptyLogs = (dir: string, fileRe: RegExp, minSize = 0, lifeTime = 0): void => {
   if (!dir || !fileRe) {
     return;
   }
   const filesToDelete = getFiles(dir).filter(({ name, size, created }: IFileInfo) => {
-    if (size < minSize) {
-      return false;
-    }
-    if (Date.now() - created < 60_000) {
-      return false;
-    }
     const match = fileRe.exec(name);
-    if (!match) {
+    if (!match || Date.now() - created < 60_000) {
       return false;
     }
-    return match[1].replace(/-/g, '') < date2YMD();
+
+    if ((size <= minSize) || (lifeTime && (Date.now() - created > lifeTime))) {
+      return true;
+    }
+
+    return false;
   });
   filesToDelete.forEach(({ path }: IFileInfo) => {
     try {
@@ -63,6 +57,6 @@ export const removeEmptyLogs = (dir: string, fileRe: RegExp, minSize = 0): void 
     } catch (err: Error | any) {
       console.log(err.message);
     }
-    console.log(`Removed empty log file "${path}"`);
+    console.log(`Removed log file "${path}"`);
   });
 };

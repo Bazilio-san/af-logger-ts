@@ -31,27 +31,27 @@ export type TLogLevelId = keyof ILogLevel;
  */
 export type TLogLevelName = ILogLevel[TLogLevelId];
 
-export const logLevels: TLogLevelName[] = ['silly', 'trace', 'debug', 'info', 'warn', 'error', 'fatal'];
+export const tsLogLevels: TLogLevelName[] = ['silly', 'trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 
-export const logLevelIdByName = (logLevelName: TLogLevelName): TLogLevelId => {
-  const foundLevelId = logLevels.indexOf(logLevelName);
-  return (foundLevelId === -1 ? 3 : foundLevelId) as TLogLevelId;
+export const allowedLogLevels: TFileLogLevel[] = ['silly', 'debug', 'info', 'warn', 'error'];
+
+export const tsLogLevelIdByName = (logLevelName?: TLogLevelName): TLogLevelId => {
+  const foundLevelId = logLevelName ? tsLogLevels.indexOf(logLevelName) : -1;
+  return (foundLevelId === -1 || allowedLogLevels.indexOf(logLevelName as TFileLogLevel) === -1 ? 3 : foundLevelId) as TLogLevelId;
 };
 
-export type TFileLogLevel = 'info' | 'error'
+export const getWinstonLogLevel = (logLevelName?: TLogLevelName): TFileLogLevel => (logLevelName && allowedLogLevels.indexOf(logLevelName as TFileLogLevel) > -1 ? logLevelName as TFileLogLevel : 'info');
 
-export type TFileLoggerMap = {
-  [_key in TLogLevelName]?: TFileLogLevel
-}
+export type TFileLogLevel = 'info' | 'error' | 'debug' | 'silly' | 'warn';
 
 export interface IFileLoggerConstructorOptions {
   asyncLocalStorage?: AsyncLocalStorage<{ traceId: string }>,
   filePrefix?: string,
+  level?: TFileLogLevel,
   logDir?: string,
   minLogSize?: number, // Files smaller than this size will be deleted during rotation. Default = 0
   minErrorLogSize?: number, // Files smaller than this size will be deleted during rotation. Default = minLogSize | 0
   emitter?: EventEmitter,
-  fileLoggerMap?: TFileLoggerMap,
 }
 
 export interface ILoggerSettings extends IFileLoggerConstructorOptions, ISettingsParam<ILogObj> {
