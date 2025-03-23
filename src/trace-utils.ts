@@ -16,8 +16,30 @@ function hashTraceIdToIndex (traceId: string): number {
 
 /** Возвращает index кода цвета для данного traceId */
 function getColorIdForTraceId (traceId: string): string {
-  // Выбираем из подходящих цветов
-  const index = 18 + (hashTraceIdToIndex(traceId) % 210);
+  // Выбираем из подходящих цветов, убираем красный, белый, серый, черный
+  let index = 11 + (hashTraceIdToIndex(traceId) % 210);
+  switch (index) {
+    case 15: {
+      index = 2;
+      break;
+    }
+    case 16: {
+      index = 3;
+      break;
+    }
+    case 124: {
+      index = 4;
+      break;
+    }
+    case 160: {
+      index = 5;
+      break;
+    }
+    case 196: {
+      index = 6;
+      break;
+    }
+  }
   return index.toString();
 }
 

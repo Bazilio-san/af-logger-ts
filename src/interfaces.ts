@@ -9,6 +9,8 @@ export type TErr = Error | any;
 export type Maybe<T> = T | undefined;
 export type Nullable<T> = T | null;
 
+export type TFileLogLevel = 'info' | 'error' | 'debug' | 'silly' | 'warn';
+
 export interface ILogLevel {
   0: 'silly';
   1: 'trace';
@@ -41,8 +43,6 @@ export const tsLogLevelIdByName = (logLevelName?: TLogLevelName): TLogLevelId =>
 };
 
 export const getWinstonLogLevel = (logLevelName?: TLogLevelName): TFileLogLevel => (logLevelName && allowedLogLevels.indexOf(logLevelName as TFileLogLevel) > -1 ? logLevelName as TFileLogLevel : 'info');
-
-export type TFileLogLevel = 'info' | 'error' | 'debug' | 'silly' | 'warn';
 
 export interface IFileLoggerConstructorOptions {
   asyncLocalStorage?: AsyncLocalStorage<{ traceId: string }>,

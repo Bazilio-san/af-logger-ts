@@ -41,7 +41,7 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
       if (traceId) {
         const colorFn = getColorFn(traceId);
         const traceString = colorFn ? colorFn(`[${traceId}]`) : `[${traceId}]`;
-        args = args.map((v) => `${traceString} - ${v}`);
+        args[0] = `${traceString} - ${args[0]}`;
       }
       const isNotError = item !== 'error';
       args = args.map((v) => reduceAnyError(v, isNotError, isNotError));
