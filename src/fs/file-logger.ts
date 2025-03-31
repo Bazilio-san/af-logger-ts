@@ -18,7 +18,7 @@ const DEFAULT_LOG_DIR = fsPath.resolve(appRoot.path, '../logs');
  * The logger is created in accordance with the specified settings and has a number of additional properties
  */
 const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFileLogLevel): IFileLogger => {
-  const { filePrefix, logDir } = options;
+  const { filePrefix, logDir, maxSize } = options;
   const isError = fileLogLevel === 'error';
 
   const minLogSize = (isError ? options.minErrorLogSize : 0) || options.minLogSize || 0;
@@ -34,7 +34,7 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
     json: false,
     datePattern: 'YYYY-MM-DD',
     filename: `${dir}/${errorFilePrefix}${filePrefix}-%DATE%.log`,
-    maxSize: '20m',
+    maxSize: maxSize || '20m',
     // maxFiles: '14d'
     // zippedArchive: true,
   });

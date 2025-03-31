@@ -49,6 +49,7 @@ export interface IFileLoggerConstructorOptions {
   filePrefix?: string,
   level?: TFileLogLevel,
   logDir?: string,
+  maxSize?: string,
   minLogSize?: number, // Files smaller than this size will be deleted during rotation. Default = 0
   minErrorLogSize?: number, // Files smaller than this size will be deleted during rotation. Default = minLogSize | 0
   emitter?: EventEmitter,

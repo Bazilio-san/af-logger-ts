@@ -50,10 +50,11 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   });
 
   // ============================ file logger ====================================
-  const { filePrefix, logDir, minLogSize, minErrorLogSize } = loggerSettings;
+  const { filePrefix, logDir, minLogSize, minErrorLogSize, maxSize } = loggerSettings;
 
   const fileLoggerConstructorOptions: IFileLoggerConstructorOptions = {
     filePrefix: filePrefix || settings.name,
+    maxSize,
     logDir,
     minLogSize,
     minErrorLogSize,
