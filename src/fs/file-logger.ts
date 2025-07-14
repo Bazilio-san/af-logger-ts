@@ -50,7 +50,21 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
     transports: [transport],
     format: winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD-HH:mm:ss.sss' }),
-      winston.format.printf((info) => `${info.timestamp}  ${info.level.toUpperCase()}  ${info.message}`),
+      winston.format.printf((info) => {
+        const msg = typeof info.message === "string"
+          ? info.message
+          : JSON.stringify(info.message);
+        const extra: any = { ...info };
+        delete extra.level;
+        delete extra.timestamp;
+        delete extra.message;
+
+        const extraString = Object.keys(extra).length
+          ? " " + JSON.stringify(extra)
+          : "";
+
+        return `${info.timestamp}  ${info.level.toUpperCase()}  ${msg}${extraString}`;
+      }),
     ),
   }) as unknown as IFileLogger;
   const p = winstonLogger._readableState.pipes;

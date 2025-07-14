@@ -71,7 +71,7 @@ export const reduceAnyError = (err: TErr, asObject: boolean = false, stringify: 
   }
   if (typeof err === 'object') {
     if (Array.isArray(err) || stringify) {
-      return JSON.stringify(err, removeCircularReferences(), 2).substring(0, 300);
+      return JSON.stringify(err, removeCircularReferences());
     }
     if (err.nativeError) {
       return reduceError(err.nativeError, asObject);
