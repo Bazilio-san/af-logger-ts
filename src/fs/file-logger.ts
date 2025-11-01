@@ -8,7 +8,7 @@ import * as fsPath from 'path';
 import 'winston-daily-rotate-file';
 import * as winston from 'winston';
 import { ILogObj, ILogObjMeta } from 'tslog';
-import { reduceAnyError } from '../utils';
+import { mapToWinstonLevel, reduceAnyError } from '../utils';
 import { IFileLogger, IFileLoggerConstructorOptions, TFileLogLevel } from '../interfaces';
 import { normalizePath, removeEmptyLogs } from './fs-utils';
 
@@ -51,7 +51,7 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
     format: winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD-HH:mm:ss.sss' }),
       winston.format.printf((info) => {
-        const msg = typeof info.message === "string"
+        const msg = typeof info.message === 'string'
           ? info.message
           : JSON.stringify(info.message);
         const extra: any = { ...info };
@@ -60,8 +60,8 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
         delete extra.message;
 
         const extraString = Object.keys(extra).length
-          ? " " + JSON.stringify(extra)
-          : "";
+          ? ` ${JSON.stringify(extra)}`
+          : '';
 
         return `${info.timestamp}  ${info.level.toUpperCase()}  ${msg}${extraString}`;
       }),
@@ -105,7 +105,8 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
       .filter(Boolean)
       .join(' ').trim();
     if (message) {
-      winstonLogger[logLevelName.toLowerCase() as unknown as TFileLogLevel](message);
+      const winstonLevel = mapToWinstonLevel(logLevelName);
+      winstonLogger[winstonLevel](message);
     }
     return logObjWithMeta;
   }

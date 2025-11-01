@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { TErr } from './interfaces';
+import { allowedLogLevels, TErr, TFileLogLevel } from './interfaces';
 
 const reducePropertyValue = (v: any) => {
   const type = typeof v;
@@ -121,4 +121,18 @@ export const mergeStyles = (customStalesPartial: any): any => {
   mergeIfExists(result, customStalesPartial, ['logLevelName']);
   mergeIfExists(result.logLevelName, customStalesPartial?.logLevelName);
   return result;
+};
+/**
+ * Maps tslog level names to winston-compatible level names
+ * trace -> debug, fatal -> error
+ */
+export const mapToWinstonLevel = (logLevelName: string): TFileLogLevel => {
+  const levelMap: Record<string, TFileLogLevel> = {
+    trace: 'debug',
+    fatal: 'error',
+  };
+
+  const lowerLevel = logLevelName.toLowerCase();
+  return levelMap[lowerLevel]
+    || (allowedLogLevels.includes(lowerLevel as TFileLogLevel) ? lowerLevel as TFileLogLevel : 'info');
 };

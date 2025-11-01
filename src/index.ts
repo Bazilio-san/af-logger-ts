@@ -16,4 +16,6 @@ export {
 
   tsLogLevelIdByName,
   tsLogLevels,
+
 } from './interfaces';
+export { mapToWinstonLevel } from './utils';

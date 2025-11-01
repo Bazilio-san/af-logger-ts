@@ -44,12 +44,12 @@ function getColorIdForTraceId (traceId: string): string {
 }
 
 /** Возвращает color-функцию по traceId */
-export function getColorFn (traceId: string): (text: string) => void {
+export const getColorFn = (traceId: string): (_text: string) => void => {
   let colorFn = colorCash.get(traceId);
   if (colorFn) {
     return colorFn;
   }
   colorFn = xterm(parseInt(getColorIdForTraceId(traceId), 10));
-  colorCash.set(traceId, colorFn);
-  return colorFn;
-}
+    colorCash.set(traceId, colorFn);
+    return colorFn;
+};

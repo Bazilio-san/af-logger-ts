@@ -9,8 +9,6 @@ export type TErr = Error | any;
 export type Maybe<T> = T | undefined;
 export type Nullable<T> = T | null;
 
-export type TFileLogLevel = 'info' | 'error' | 'debug' | 'silly' | 'warn';
-
 export interface ILogLevel {
   0: 'silly';
   1: 'trace';
@@ -33,6 +31,8 @@ export type TLogLevelId = keyof ILogLevel;
  */
 export type TLogLevelName = ILogLevel[TLogLevelId];
 
+export type TFileLogLevel = 'info' | 'error' | 'debug' | 'silly' | 'warn';
+
 export const tsLogLevels: TLogLevelName[] = ['silly', 'trace', 'debug', 'info', 'warn', 'error', 'fatal'];
 
 export const allowedLogLevels: TFileLogLevel[] = ['silly', 'debug', 'info', 'warn', 'error'];
@@ -42,7 +42,11 @@ export const tsLogLevelIdByName = (logLevelName?: TLogLevelName): TLogLevelId =>
   return (foundLevelId === -1 || allowedLogLevels.indexOf(logLevelName as TFileLogLevel) === -1 ? 3 : foundLevelId) as TLogLevelId;
 };
 
-export const getWinstonLogLevel = (logLevelName?: TLogLevelName): TFileLogLevel => (logLevelName && allowedLogLevels.indexOf(logLevelName as TFileLogLevel) > -1 ? logLevelName as TFileLogLevel : 'info');
+export const getWinstonLogLevel = (logLevelName?: TLogLevelName): TFileLogLevel => (
+  logLevelName && allowedLogLevels.indexOf(logLevelName as TFileLogLevel) > -1
+    ? logLevelName as TFileLogLevel
+    : 'info'
+);
 
 export interface IFileLoggerConstructorOptions {
   asyncLocalStorage?: AsyncLocalStorage<{ traceId: string }>,
