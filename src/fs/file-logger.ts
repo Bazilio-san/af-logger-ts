@@ -75,6 +75,7 @@ const getFSLogger = (options: IFileLoggerConstructorOptions, fileLogLevel: TFile
   winstonLogger._where = `${p.dirname}/${p.filename}`;
 
   winstonLogger.removeEmptyLogs();
+
   function main (logObjWithMeta: ILogObj & ILogObjMeta) {
     const { logLevelName } = logObjWithMeta._meta;
     const messages: string[] = [];
@@ -123,6 +124,8 @@ export class FileLogger {
 
   loggerFinish: (_exitCode?: number) => void;
 
+  asyncFinish: () => Promise<void>;
+
   logDir: string;
 
   constructor (options: IFileLoggerConstructorOptions) {
@@ -140,6 +143,23 @@ export class FileLogger {
         this.errorFileLogger.transport.close?.();
       });
       this.infoFileLogger.transport.close?.();
+    };
+
+    this.asyncFinish = async () => {
+      const waitFinish = (transport: winston.transport) => new Promise<void>((resolve) => {
+        const onFinish = () => {
+          transport.removeListener?.('finish', onFinish);
+          resolve();
+        };
+        transport.on('finish', onFinish);
+        // Инициируем закрытие
+        (transport as any).close?.();
+      });
+
+      await Promise.all([
+        waitFinish(this.infoFileLogger.transport),
+        waitFinish(this.errorFileLogger.transport),
+      ]);
     };
   }
 }

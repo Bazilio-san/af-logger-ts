@@ -52,7 +52,7 @@ describe('Test logger', () => {
     test(`logDir ${logDir_} --> ${expected}`, async () => {
       loggerSettings.logDir = logDir_;
       const res = getAFLogger(loggerSettings);
-      expect(res.fileLogger.logDir).toEqual(expected);
+      expect(res.fileLogger!.logDir).toEqual(expected);
     }, TIMEOUT_MILLIS);
   });
 });

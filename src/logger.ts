@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* istanbul ignore file */
 // noinspection JSUnusedGlobalSymbols
 
@@ -11,7 +12,7 @@ import { IFileLoggerConstructorOptions,
 import { mergeStyles, reduceAnyError } from './utils';
 import { getColorFn } from './trace-utils';
 
-const defaultLogObject: ILogObj = { };
+const defaultLogObject: ILogObj = {};
 
 export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const settings = {
@@ -51,21 +52,25 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
 
   // ============================ file logger ====================================
   const { filePrefix, logDir, minLogSize, minErrorLogSize, maxSize } = loggerSettings;
+  let fileLogger: FileLogger | undefined;
+  if (loggerSettings.noFileLogger) {
+    console.log('Logger: skip file logger');
+  } else {
+    const fileLoggerConstructorOptions: IFileLoggerConstructorOptions = {
+      filePrefix: filePrefix || settings.name,
+      maxSize,
+      logDir,
+      minLogSize,
+      minErrorLogSize,
+      level: getWinstonLogLevel(loggerSettings.level),
+      emitter: loggerSettings.emitter,
+    };
 
-  const fileLoggerConstructorOptions: IFileLoggerConstructorOptions = {
-    filePrefix: filePrefix || settings.name,
-    maxSize,
-    logDir,
-    minLogSize,
-    minErrorLogSize,
-    level: getWinstonLogLevel(loggerSettings.level),
-    emitter: loggerSettings.emitter,
-  };
+    fileLogger = new FileLogger(fileLoggerConstructorOptions);
 
-  const fileLogger = new FileLogger(fileLoggerConstructorOptions);
-
-  logger.attachTransport(fileLogger.infoFileLogger.main);
-  logger.attachTransport(fileLogger.errorFileLogger.main);
+    logger.attachTransport(fileLogger.infoFileLogger.main);
+    logger.attachTransport(fileLogger.errorFileLogger.main);
+  }
 
   return {
     logger,

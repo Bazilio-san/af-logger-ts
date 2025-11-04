@@ -45,11 +45,7 @@ export const removeEmptyLogs = (dir: string, fileRe: RegExp, minSize = 0, lifeTi
       return false;
     }
 
-    if ((size <= minSize) || (lifeTime && (Date.now() - created > lifeTime))) {
-      return true;
-    }
-
-    return false;
+    return !!((size <= minSize) || (lifeTime && (Date.now() - created > lifeTime)));
   });
   filesToDelete.forEach(({ path }: IFileInfo) => {
     try {

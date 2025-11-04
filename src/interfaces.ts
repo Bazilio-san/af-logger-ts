@@ -61,6 +61,7 @@ export interface IFileLoggerConstructorOptions {
 
 export interface ILoggerSettings extends IFileLoggerConstructorOptions, ISettingsParam<ILogObj> {
   name?: string,
+  noFileLogger?: boolean,
 }
 
 export interface IFileLogger extends winston.Logger {
