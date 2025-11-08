@@ -51,8 +51,8 @@ export const removeEmptyLogs = (dir: string, fileRe: RegExp, minSize = 0, lifeTi
     try {
       fs.unlinkSync(path);
     } catch (err: Error | any) {
-      console.log(err.message);
+      console.error(err.message);
     }
-    console.log(`Removed log file "${path}"`);
+    console.error(`Removed log file "${path}"`);
   });
 };

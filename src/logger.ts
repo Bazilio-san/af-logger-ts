@@ -54,7 +54,7 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const { filePrefix, logDir, minLogSize, minErrorLogSize, maxSize } = loggerSettings;
   let fileLogger: FileLogger | undefined;
   if (loggerSettings.noFileLogger) {
-    console.log('Logger: skip file logger');
+    console.error('Logger: skip file logger');
   } else {
     const fileLoggerConstructorOptions: IFileLoggerConstructorOptions = {
       filePrefix: filePrefix || settings.name,
@@ -80,7 +80,7 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
         err = new Error(err);
       }
       // eslint-disable-next-line no-console
-      console.log(err);
+      console.error(err);
       process.exit(1);
     },
   };
