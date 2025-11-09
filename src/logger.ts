@@ -13,7 +13,7 @@ import { mergeStyles, reduceAnyError } from './utils';
 import { getColorFn } from './trace-utils';
 
 const defaultLogObject: ILogObj = {};
-export { Logger, FileLogger };
+export { Logger, FileLogger, ILogObj };
 
 export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   const settings = {

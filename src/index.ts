@@ -1,4 +1,4 @@
-export { getAFLogger, Logger, FileLogger } from './logger';
+export { getAFLogger, Logger, FileLogger, ILogObj } from './logger';
 
 export {
   IFileLogger,
