@@ -1,4 +1,4 @@
-export { getAFLogger } from './logger';
+export { getAFLogger, Logger } from './logger';
 
 export {
   IFileLogger,
@@ -16,6 +16,5 @@ export {
 
   tsLogLevelIdByName,
   tsLogLevels,
-
 } from './interfaces';
 export { mapToWinstonLevel } from './utils';
