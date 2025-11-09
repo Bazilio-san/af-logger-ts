@@ -53,9 +53,7 @@ export const getAFLogger = (loggerSettings: ILoggerSettings) => {
   // ============================ file logger ====================================
   const { filePrefix, logDir, minLogSize, minErrorLogSize, maxSize } = loggerSettings;
   let fileLogger: FileLogger | undefined;
-  if (loggerSettings.noFileLogger) {
-    console.error('Logger: skip file logger');
-  } else {
+  if (!loggerSettings.noFileLogger) {
     const fileLoggerConstructorOptions: IFileLoggerConstructorOptions = {
       filePrefix: filePrefix || settings.name,
       maxSize,
