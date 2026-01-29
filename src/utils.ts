@@ -66,21 +66,53 @@ function removeCircularReferences () {
 }
 
 export const reduceAnyError = (err: TErr, asObject: boolean = false, stringify: boolean = false) => {
+  const safeStringify = (v: unknown) => {
+    try {
+      return JSON.stringify(v, removeCircularReferences());
+    } catch (e) {
+      // JSON.stringify может падать (BigInt, toJSON(), геттеры, и т.д.)
+      if (e instanceof Error) {
+        return `${e.name}: ${e.message}`;
+      }
+      return String(e);
+    }
+  };
+
+  if (err == null) {
+    return err; // null/undefined — возвращаем как есть (без падений)
+  }
+
   if (typeof err === 'string') {
     return err;
   }
-  if (typeof err === 'object') {
-    if (Array.isArray(err) || stringify) {
-      return JSON.stringify(err, removeCircularReferences());
-    }
-    if (err.nativeError) {
-      return reduceError(err.nativeError, asObject);
-    }
-    if (err instanceof Error || (err.stack && err.message)) {
-      return reduceError(err, asObject);
-    }
-    return err;
+
+  // чтобы не получить неявный undefined на number/boolean/function/symbol/etc
+  if (typeof err !== 'object') {
+    return String(err);
   }
+
+  // typeof err === 'object' (и точно не null)
+  if (Array.isArray(err) || stringify) {
+    return safeStringify(err);
+  }
+
+  let nativeError: unknown;
+  try {
+    nativeError = (err as any).nativeError;
+  } catch {
+    nativeError = undefined;
+  }
+  if (nativeError) {
+    return reduceError(nativeError as any, asObject);
+  }
+
+  const maybeErr = err as any;
+  if (err instanceof Error || (maybeErr?.stack && maybeErr?.message)) {
+    return reduceError(err, asObject);
+  }
+
+  // Возвращаем объект как есть (но гарантируем, что до этого не упали на null/примитивах)
+  return err;
 };
 
 const PRETTY_LOG_STYLES_DEFAULT = {
